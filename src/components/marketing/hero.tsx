@@ -1,28 +1,13 @@
+import { ChevronRight, Circle, MessageSquare } from "lucide-react";
+import { DeltaIcon, severityStyles, sortDeltas } from "@/components/care/delta-visuals";
 import { LinkButton } from "@/components/ui/button";
+import { patients } from "@/data/patients";
+import { formatCategory, formatSeverity, formatTime, settingLabel } from "@/lib/format";
+import type { Delta } from "@/lib/types";
 
-const previewDeltas = [
-  {
-    rail: "bg-alert",
-    glyph: "!",
-    label: "text-alert",
-    eyebrow: "Needs attention · Incident",
-    body: "Caught foot on hall rug once — no fall. Rug moved out of the path.",
-  },
-  {
-    rail: "bg-ink",
-    glyph: "▲",
-    label: "text-ink-muted",
-    eyebrow: "Watch · Mobility",
-    body: "Two-hand support standing from the couch three times last evening.",
-  },
-  {
-    rail: "bg-border-strong",
-    glyph: "•",
-    label: "text-ink-subtle",
-    eyebrow: "Note · Appetite",
-    body: "Ate about half of dinner. Drinking less after 7pm.",
-  },
-];
+/** Real seed data so the marketing preview can't drift from the live cards. */
+const previewPatient = patients[0];
+const previewDeltas = sortDeltas(previewPatient.deltas).slice(0, 3);
 
 export function Hero() {
   return (
@@ -74,7 +59,7 @@ export function Hero() {
             <div className="border-b border-border px-5 py-4">
               <p className="type-eyebrow text-ink-muted">Step 2 of 4 · What changed</p>
               <p className="font-display text-2xl font-semibold text-ink">
-                Maggie · Home visit
+                {previewPatient.preferredName} · {settingLabel(previewPatient.setting)}
               </p>
               <div className="mt-3 flex gap-1.5" aria-hidden="true">
                 <span className="h-1.5 flex-1 rounded-full bg-brand" />
@@ -84,23 +69,16 @@ export function Hero() {
               </div>
             </div>
 
-            <ul className="space-y-3 p-5">
-              {previewDeltas.map((item) => (
-                <li
-                  key={item.eyebrow}
-                  className="flex overflow-hidden rounded-2xl border border-border bg-surface"
-                >
-                  <span className={`w-1.5 shrink-0 ${item.rail}`} aria-hidden="true" />
-                  <div className="px-4 py-3">
-                    <p className={`type-eyebrow flex items-center gap-1.5 ${item.label}`}>
-                      <span aria-hidden="true">{item.glyph}</span>
-                      {item.eyebrow}
-                    </p>
-                    <p className="mt-1.5 text-base leading-snug text-ink">{item.body}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-3 p-5">
+              <p className="text-sm font-semibold text-ink-subtle">
+                0 of {previewDeltas.length} reviewed
+              </p>
+              <ul className="space-y-3">
+                {previewDeltas.map((delta) => (
+                  <PreviewCard key={delta.id} delta={delta} />
+                ))}
+              </ul>
+            </div>
 
             <div className="border-t border-border px-5 py-4">
               <p className="flex min-h-[48px] items-center justify-center rounded-xl bg-brand px-5 text-base font-semibold text-on-brand">
@@ -111,5 +89,52 @@ export function Hero() {
         </div>
       </div>
     </section>
+  );
+}
+
+/** Mirrors the live change card, minus the interactive controls. */
+function PreviewCard({ delta }: { delta: Delta }) {
+  const notes = delta.notes?.length ?? 0;
+  const meta = [delta.observedAt ? formatTime(delta.observedAt) : null, delta.reportedBy]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <li
+      className={`flex flex-col overflow-hidden rounded-2xl border bg-surface ${
+        severityStyles[delta.severity].card
+      }`}
+    >
+      <div className="flex items-start gap-3 p-4">
+        <DeltaIcon delta={delta} size="sm" />
+        <div className="min-w-0 flex-1">
+          <p className={`type-eyebrow ${severityStyles[delta.severity].label}`}>
+            {formatSeverity(delta.severity)} · {formatCategory(delta.category)}
+          </p>
+          <p className="mt-1.5 text-base font-semibold leading-snug text-ink">
+            {delta.summary}
+          </p>
+          {meta ? <p className="mt-2 text-xs font-bold text-ink-subtle">{meta}</p> : null}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-2 border-t border-border bg-linen/60 px-3 py-2 text-sm font-semibold text-ink-muted">
+        <span className="inline-flex items-center gap-2">
+          <Circle className="size-4" aria-hidden="true" strokeWidth={2.25} />
+          Mark reviewed
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          {notes > 0 ? (
+            <>
+              <MessageSquare className="size-4" aria-hidden="true" />
+              {`${notes} ${notes === 1 ? "note" : "notes"}`}
+            </>
+          ) : (
+            "Details"
+          )}
+          <ChevronRight className="size-4" aria-hidden="true" />
+        </span>
+      </div>
+    </li>
   );
 }

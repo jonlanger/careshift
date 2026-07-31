@@ -19,11 +19,32 @@ export type PatientStatus = "attention" | "needs-brief" | "briefed";
 
 export type ShiftStatus = "covered" | "open" | "swap-requested";
 
+export interface DeltaNote {
+  id: string;
+  body: string;
+  author: string;
+  at: string;
+}
+
+/** Paired so a change never shows one side of the comparison without the other. */
+export interface DeltaComparison {
+  before: string;
+  after: string;
+}
+
 export interface Delta {
   id: string;
   category: DeltaCategory;
   summary: string;
   severity: DeltaSeverity;
+  /** Longer context shown when the change is opened. */
+  detail?: string;
+  comparison?: DeltaComparison;
+  observedAt?: string;
+  reportedBy?: string;
+  acknowledgedAt?: string | null;
+  acknowledgedBy?: string | null;
+  notes?: DeltaNote[];
 }
 
 export interface DueItem {

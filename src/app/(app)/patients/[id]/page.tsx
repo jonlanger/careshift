@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PageBody, PageHeader } from "@/components/app/app-shell";
-import { DeltaList } from "@/components/care/delta-list";
+import { DeltaSection } from "@/components/care/delta-list";
 import { DueList } from "@/components/care/due-list";
 import { LinkButton } from "@/components/ui/button";
 import { Card, StatusPill } from "@/components/ui/primitives";
@@ -65,19 +65,14 @@ export default function PatientDetailPage() {
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[1.5fr_1fr] xl:gap-8">
           <div className="space-y-8">
-            <section aria-labelledby="changes" className="space-y-3">
-              <h2 id="changes" className="type-h2 text-ink">
-                What changed
-              </h2>
-              {patient.deltas.length > 0 ? (
-                <DeltaList deltas={patient.deltas} />
-              ) : (
-                <Card>
-                  <p className="text-base text-ink-muted">
-                    Nothing recorded yet. The first brief will start the history.
-                  </p>
-                </Card>
-              )}
+            <section aria-labelledby="changes">
+              <DeltaSection
+                patientId={patient.id}
+                deltas={patient.deltas}
+                title="What changed"
+                titleId="changes"
+                titleClassName="type-h2"
+              />
             </section>
 
             <section aria-labelledby="due" className="space-y-3">

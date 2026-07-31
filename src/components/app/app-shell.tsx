@@ -49,8 +49,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </button>
       </header>
 
-      {/* Desktop sidebar */}
-      <aside className="hidden shrink-0 border-r border-border bg-surface md:flex md:w-60 md:flex-col lg:w-68">
+      {/* Desktop sidebar — pinned to the viewport so only main scrolls */}
+      <aside className="hidden shrink-0 border-r border-border bg-surface md:sticky md:top-0 md:flex md:h-svh md:w-60 md:flex-col md:self-start md:overflow-y-auto lg:w-68">
         <div className="border-b border-border px-5 py-5">
           <Link href="/today" className="font-display text-2xl font-semibold text-ink no-underline">
             Careshift

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { DeltaList } from "@/components/care/delta-list";
+import { DeltaSection } from "@/components/care/delta-list";
 import { DueList } from "@/components/care/due-list";
 import { Button, LinkButton } from "@/components/ui/button";
 import { TextAreaField } from "@/components/ui/input";
@@ -109,12 +109,15 @@ export function BriefFlow({ patient }: { patient: Patient }) {
             <>
               {step === "covering" ? <CoveringStep patient={patient} /> : null}
               {step === "changes" ? (
-                <div className="space-y-4">
-                  <p className="type-lead text-ink-muted">
-                    Changes since the last handoff. Safety items come first.
-                  </p>
-                  <DeltaList deltas={patient.deltas} />
-                </div>
+                <DeltaSection
+                  patientId={patient.id}
+                  deltas={patient.deltas}
+                  description={
+                    <p className="type-lead">
+                      Changes since the last handoff. Safety items come first.
+                    </p>
+                  }
+                />
               ) : null}
               {step === "due" ? (
                 <div className="space-y-4">

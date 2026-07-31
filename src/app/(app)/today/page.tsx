@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { PageBody, PageHeader } from "@/components/app/app-shell";
-import { DeltaList } from "@/components/care/delta-list";
+import { DeltaSection } from "@/components/care/delta-list";
 import { DueList } from "@/components/care/due-list";
 import { LinkButton } from "@/components/ui/button";
 import { Card, SectionHeading, ShiftStatusPill } from "@/components/ui/primitives";
@@ -57,10 +57,22 @@ export default function TodayPage() {
             </Card>
 
             {next.deltas.length > 0 ? (
-              <div className="space-y-3">
-                <h3 className="type-h3 text-ink">What changed</h3>
-                <DeltaList deltas={next.deltas.slice(0, 3)} />
-              </div>
+              <DeltaSection
+                patientId={next.id}
+                deltas={next.deltas.slice(0, 3)}
+                title="What changed"
+                titleLevel={3}
+                action={
+                  next.deltas.length > 3 ? (
+                    <Link
+                      href={`/patients/${next.id}`}
+                      className="text-sm font-semibold text-brand"
+                    >
+                      All {next.deltas.length}
+                    </Link>
+                  ) : null
+                }
+              />
             ) : null}
 
             {next.dueNow.length > 0 ? (

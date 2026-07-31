@@ -10,7 +10,7 @@ import {
 } from "react";
 import { CAREGIVER_NAME, patients as seedPatients } from "@/data/patients";
 import { shiftSlots as seedShifts } from "@/data/shifts";
-import type { NewPatientInput, Patient, ShiftSlot } from "@/lib/types";
+import type { Delta, NewPatientInput, Patient, ShiftSlot } from "@/lib/types";
 
 type Store = {
   caregiverName: string;
@@ -18,6 +18,12 @@ type Store = {
   shifts: ShiftSlot[];
   addPatient: (input: NewPatientInput) => Patient;
   markBriefed: (patientId: string) => void;
+  setDeltaAcknowledged: (
+    patientId: string,
+    deltaId: string,
+    acknowledged: boolean,
+  ) => void;
+  addDeltaNote: (patientId: string, deltaId: string, body: string) => void;
   claimShift: (shiftId: string) => void;
   requestSwap: (shiftId: string) => void;
 };
@@ -71,6 +77,56 @@ export function CareshiftProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const updateDelta = useCallback(
+    (patientId: string, deltaId: string, change: (delta: Delta) => Delta) => {
+      setPatients((current) =>
+        current.map((patient) =>
+          patient.id === patientId
+            ? {
+                ...patient,
+                deltas: patient.deltas.map((delta) =>
+                  delta.id === deltaId ? change(delta) : delta,
+                ),
+              }
+            : patient,
+        ),
+      );
+    },
+    [],
+  );
+
+  const setDeltaAcknowledged = useCallback(
+    (patientId: string, deltaId: string, acknowledged: boolean) => {
+      updateDelta(patientId, deltaId, (delta) => ({
+        ...delta,
+        acknowledgedAt: acknowledged ? new Date().toISOString() : null,
+        acknowledgedBy: acknowledged ? CAREGIVER_NAME : null,
+      }));
+    },
+    [updateDelta],
+  );
+
+  const addDeltaNote = useCallback(
+    (patientId: string, deltaId: string, body: string) => {
+      const trimmed = body.trim();
+      if (!trimmed) return;
+
+      updateDelta(patientId, deltaId, (delta) => ({
+        ...delta,
+        notes: [
+          ...(delta.notes ?? []),
+          {
+            id: `${deltaId}-n-${Math.random().toString(36).slice(2, 8)}`,
+            body: trimmed,
+            author: CAREGIVER_NAME,
+            at: new Date().toISOString(),
+          },
+        ],
+      }));
+    },
+    [updateDelta],
+  );
+
   const claimShift = useCallback(
     (shiftId: string) => {
       setShifts((current) =>
@@ -99,10 +155,21 @@ export function CareshiftProvider({ children }: { children: ReactNode }) {
       shifts,
       addPatient,
       markBriefed,
+      setDeltaAcknowledged,
+      addDeltaNote,
       claimShift,
       requestSwap,
     }),
-    [patients, shifts, addPatient, markBriefed, claimShift, requestSwap],
+    [
+      patients,
+      shifts,
+      addPatient,
+      markBriefed,
+      setDeltaAcknowledged,
+      addDeltaNote,
+      claimShift,
+      requestSwap,
+    ],
   );
 
   return <CareshiftContext.Provider value={value}>{children}</CareshiftContext.Provider>;
