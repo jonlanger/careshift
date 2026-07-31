@@ -1,18 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { BriefHeader } from "@/components/brief/brief-header";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useState } from "react";
+import { DeltaList } from "@/components/care/delta-list";
+import { DueList } from "@/components/care/due-list";
+import { Button, LinkButton } from "@/components/ui/button";
 import { TextAreaField } from "@/components/ui/input";
-import {
-  formatCategory,
-  formatDateTime,
-  formatRelativeTo,
-  formatSeverity,
-  formatTime,
-  windowEndLabel,
-} from "@/lib/format";
-import type { BriefFixture, BriefStep, DeltaSeverity } from "@/lib/types";
+import { Card } from "@/components/ui/primitives";
+import { formatDateTime, settingLabel, windowEndLabel } from "@/lib/format";
+import { useCareshift } from "@/lib/store";
+import type { BriefStep, Patient } from "@/lib/types";
 
 const steps: BriefStep[] = ["covering", "changes", "due", "note"];
 
@@ -23,36 +20,27 @@ const stepTitles: Record<BriefStep, string> = {
   note: "Note & done",
 };
 
-const severityStyles: Record<DeltaSeverity, string> = {
-  urgent: "bg-urgent-bg text-urgent border-urgent/30",
-  watch: "bg-watch-bg text-watch border-watch/30",
-  info: "bg-info-bg text-info border-info/30",
+const nextLabels: Record<BriefStep, string> = {
+  covering: "See what changed",
+  changes: "See what’s due",
+  due: "Continue to note",
+  note: "Confirm brief complete",
 };
 
-function sortDeltas(fixture: BriefFixture) {
-  const order: DeltaSeverity[] = ["urgent", "watch", "info"];
-  return [...fixture.deltas].sort(
-    (a, b) => order.indexOf(a.severity) - order.indexOf(b.severity),
-  );
-}
-
-export function BriefFlow({ fixture }: { fixture: BriefFixture }) {
+export function BriefFlow({ patient }: { patient: Patient }) {
+  const { markBriefed } = useCareshift();
   const [stepIndex, setStepIndex] = useState(0);
   const [note, setNote] = useState("");
   const [complete, setComplete] = useState(false);
-  const [skipEmptyAck, setSkipEmptyAck] = useState(false);
+  const [emptyAcknowledged, setEmptyAcknowledged] = useState(false);
 
   const step = steps[stepIndex];
-  const deltas = useMemo(() => sortDeltas(fixture), [fixture]);
-  const hasNoHandoff = !fixture.lastHandoff || fixture.briefStale;
-  const showEmpty = step === "changes" && hasNoHandoff && !skipEmptyAck;
-
-  const windowLabel = windowEndLabel(fixture.shiftStart, fixture.dueWindowHours);
-  const settingLabel =
-    fixture.recipient.setting === "home" ? "Home visit" : "Facility";
+  const hasNoHandoff = !patient.lastHandoff || patient.briefStale;
+  const showEmpty = step === "changes" && hasNoHandoff && !emptyAcknowledged;
 
   function goNext() {
     if (step === "note") {
+      markBriefed(patient.id);
       setComplete(true);
       return;
     }
@@ -68,84 +56,95 @@ export function BriefFlow({ fixture }: { fixture: BriefFixture }) {
   }
 
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-md flex-col bg-linen shadow-sm md:my-6 md:min-h-[calc(100svh-3rem)] md:overflow-hidden md:rounded-2xl md:border md:border-border">
-      <BriefHeader recipientName={fixture.recipient.preferredName} />
-
-      <div className="border-b border-border bg-surface px-4 py-3" aria-live="polite">
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
-          Step {stepIndex + 1} of {steps.length}
-        </p>
-        <p className="text-base font-semibold text-ink">{stepTitles[step]}</p>
-        <div
-          className="mt-3 flex gap-1.5"
-          role="progressbar"
-          aria-valuemin={1}
-          aria-valuemax={steps.length}
-          aria-valuenow={stepIndex + 1}
-          aria-label="Brief progress"
-        >
-          {steps.map((s, i) => (
-            <span
-              key={s}
-              className={[
-                "h-1.5 flex-1 rounded-full",
-                i <= stepIndex ? "bg-cta" : "bg-border",
-              ].join(" ")}
-            />
-          ))}
+    <div className="flex min-h-full flex-col">
+      <div className="border-b border-border bg-surface px-4 py-4 sm:px-6 lg:px-10">
+        <div className="mx-auto max-w-2xl">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="type-eyebrow text-ink-muted">
+              Step {stepIndex + 1} of {steps.length}
+            </p>
+            <Link
+              href={`/patients/${patient.id}`}
+              className="text-sm font-semibold text-brand"
+            >
+              Full record
+            </Link>
+          </div>
+          <p className="type-h3 mt-1 text-ink" aria-live="polite">
+            {stepTitles[step]}
+          </p>
+          <div
+            className="mt-3 flex gap-1.5"
+            role="progressbar"
+            aria-valuemin={1}
+            aria-valuemax={steps.length}
+            aria-valuenow={stepIndex + 1}
+            aria-label="Brief progress"
+          >
+            {steps.map((s, i) => (
+              <span
+                key={s}
+                className={[
+                  "h-1.5 flex-1 rounded-full",
+                  i <= stepIndex ? "bg-brand" : "bg-border",
+                ].join(" ")}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col px-4 py-5">
-        {complete ? (
-          <ReadyState
-            name={fixture.recipient.preferredName}
-            note={note}
-            onBack={goBack}
-          />
-        ) : showEmpty ? (
-          <EmptyState
-            onContinue={() => {
-              setSkipEmptyAck(true);
-              goNext();
-            }}
-          />
-        ) : (
-          <>
-            {step === "covering" ? (
-              <CoveringStep
-                fixture={fixture}
-                settingLabel={settingLabel}
-              />
-            ) : null}
-            {step === "changes" ? <ChangesStep deltas={deltas} /> : null}
-            {step === "due" ? (
-              <DueStep
-                fixture={fixture}
-                windowLabel={windowLabel}
-              />
-            ) : null}
-            {step === "note" ? (
-              <NoteStep note={note} setNote={setNote} />
-            ) : null}
-          </>
-        )}
+      <div className="flex-1 px-4 pb-8 pt-6 sm:px-6 lg:px-10 lg:py-10">
+        <div className="mx-auto max-w-2xl">
+          {complete ? (
+            <ReadyState patient={patient} note={note} onBack={goBack} />
+          ) : showEmpty ? (
+            <EmptyState
+              onContinue={() => {
+                setEmptyAcknowledged(true);
+                setStepIndex(steps.indexOf("due"));
+              }}
+            />
+          ) : (
+            <>
+              {step === "covering" ? <CoveringStep patient={patient} /> : null}
+              {step === "changes" ? (
+                <div className="space-y-4">
+                  <p className="type-lead text-ink-muted">
+                    Changes since the last handoff. Safety items come first.
+                  </p>
+                  <DeltaList deltas={patient.deltas} />
+                </div>
+              ) : null}
+              {step === "due" ? (
+                <div className="space-y-4">
+                  <p className="type-lead text-ink-muted">
+                    Due in the next {patient.dueWindowHours} hours · until{" "}
+                    {windowEndLabel(patient.shiftStart, patient.dueWindowHours)}
+                  </p>
+                  <DueList items={patient.dueNow} referenceIso={patient.shiftStart} />
+                </div>
+              ) : null}
+              {step === "note" ? <NoteStep note={note} setNote={setNote} /> : null}
+            </>
+          )}
+        </div>
       </div>
 
       {!complete && !showEmpty ? (
-        <div className="sticky bottom-0 border-t border-border bg-surface/95 px-4 py-4 backdrop-blur-md">
-          <div className="flex flex-col gap-2">
-            <Button type="button" fullWidth onClick={goNext}>
-              {step === "note"
-                ? "Confirm brief complete"
-                : step === "covering"
-                  ? "See what changed"
-                  : step === "changes"
-                    ? "See what’s due"
-                    : "Continue to note"}
+        <div className="sticky bottom-14 border-t border-border bg-surface/95 px-4 py-4 backdrop-blur-md sm:px-6 md:bottom-0 lg:px-10">
+          <div className="mx-auto flex max-w-2xl flex-col gap-2 sm:flex-row-reverse sm:items-center">
+            <Button type="button" size="lg" fullWidth onClick={goNext} className="sm:flex-1">
+              {nextLabels[step]}
             </Button>
             {stepIndex > 0 ? (
-              <Button type="button" variant="ghost" fullWidth onClick={goBack}>
+              <Button
+                type="button"
+                variant="ghost"
+                fullWidth
+                onClick={goBack}
+                className="sm:w-auto sm:px-6"
+              >
                 Back
               </Button>
             ) : null}
@@ -156,120 +155,47 @@ export function BriefFlow({ fixture }: { fixture: BriefFixture }) {
   );
 }
 
-function CoveringStep({
-  fixture,
-  settingLabel,
-}: {
-  fixture: BriefFixture;
-  settingLabel: string;
-}) {
+function CoveringStep({ patient }: { patient: Patient }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div>
-        <p className="font-display text-3xl font-semibold tracking-tight text-ink">
-          {fixture.recipient.preferredName}
-        </p>
-        <p className="mt-1 text-lg text-ink-muted">
-          {settingLabel}
-          {fixture.recipient.roomLabel ? ` · ${fixture.recipient.roomLabel}` : ""}
+        <p className="type-display text-ink">{patient.preferredName}</p>
+        <p className="type-lead mt-2 text-ink-muted">
+          {settingLabel(patient.setting)}
+          {patient.roomLabel ? ` · ${patient.roomLabel}` : ""}
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-surface p-4">
-        <p className="text-sm font-semibold text-ink-muted">You’re covering</p>
-        <p className="mt-1 text-base text-ink">
-          {fixture.recipient.firstName}
-          {fixture.recipient.preferredName !== fixture.recipient.firstName
-            ? ` (“${fixture.recipient.preferredName}”)`
-            : ""}
-        </p>
-        <p className="mt-4 text-sm font-semibold text-ink-muted">Shift starts</p>
-        <p className="mt-1 text-base text-ink">
-          {formatDateTime(fixture.shiftStart)}
-        </p>
-        <p className="mt-4 text-sm font-semibold text-ink-muted">Last handoff</p>
-        {fixture.lastHandoff ? (
+      <Card className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <p className="type-eyebrow text-ink-subtle">You’re covering</p>
           <p className="mt-1 text-base text-ink">
-            {formatDateTime(fixture.lastHandoff.at)}
-            <span className="block text-ink-muted">by {fixture.lastHandoff.by}</span>
+            {patient.firstName} {patient.lastName}
+            {patient.preferredName !== patient.firstName
+              ? ` (“${patient.preferredName}”)`
+              : ""}
           </p>
-        ) : (
-          <p className="mt-1 text-base text-ink">No prior handoff on file</p>
-        )}
-      </div>
-
-      <p className="text-sm leading-relaxed text-ink-muted">
-        Caregiver: {fixture.caregiver.name}. This brief is for the next few minutes —
-        then you’re ready to begin.
-      </p>
-    </div>
-  );
-}
-
-function ChangesStep({
-  deltas,
-}: {
-  deltas: BriefFixture["deltas"];
-}) {
-  return (
-    <div className="space-y-4">
-      <p className="text-base text-ink-muted">
-        Scan these changes since the last handoff. Safety items appear first.
-      </p>
-      <ul className="space-y-3">
-        {deltas.map((delta) => (
-          <li
-            key={delta.id}
-            className={`rounded-xl border px-4 py-3 ${severityStyles[delta.severity]}`}
-          >
-            <p className="text-xs font-bold uppercase tracking-wide">
-              {formatSeverity(delta.severity)} · {formatCategory(delta.category)}
+        </div>
+        <div>
+          <p className="type-eyebrow text-ink-subtle">Shift starts</p>
+          <p className="mt-1 text-base text-ink">{formatDateTime(patient.shiftStart)}</p>
+        </div>
+        <div className="sm:col-span-2">
+          <p className="type-eyebrow text-ink-subtle">Last handoff</p>
+          {patient.lastHandoff ? (
+            <p className="mt-1 text-base text-ink">
+              {formatDateTime(patient.lastHandoff.at)}
+              <span className="block text-ink-muted">by {patient.lastHandoff.by}</span>
             </p>
-            <p className="mt-1 text-base leading-snug text-ink">{delta.summary}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
+          ) : (
+            <p className="mt-1 text-base text-ink">No prior handoff on file</p>
+          )}
+        </div>
+      </Card>
 
-function DueStep({
-  fixture,
-  windowLabel,
-}: {
-  fixture: BriefFixture;
-  windowLabel: string;
-}) {
-  return (
-    <div className="space-y-4">
-      <p className="text-base text-ink-muted">
-        Due in the next {fixture.dueWindowHours} hours · until {windowLabel}
+      <p className="text-base leading-relaxed text-ink-muted">
+        {patient.summary}
       </p>
-      <ul className="space-y-3">
-        {fixture.dueNow.map((item) => (
-          <li
-            key={item.id}
-            className="rounded-xl border border-border bg-surface px-4 py-3"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">
-                  {item.type === "med" ? "Medication" : "Task"}
-                </p>
-                <p className="mt-1 text-base font-semibold leading-snug text-ink">
-                  {item.label}
-                </p>
-              </div>
-              <p className="shrink-0 text-right text-sm font-semibold text-ink">
-                {formatTime(item.dueAt)}
-                <span className="block font-medium text-ink-muted">
-                  {formatRelativeTo(item.dueAt, fixture.shiftStart)}
-                </span>
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
@@ -284,7 +210,7 @@ function NoteStep({
   const max = 280;
   return (
     <div className="space-y-4">
-      <p className="text-base text-ink-muted">
+      <p className="type-lead text-ink-muted">
         Optional — one short note for the next person. You can skip this.
       </p>
       <TextAreaField
@@ -302,20 +228,19 @@ function NoteStep({
 
 function EmptyState({ onContinue }: { onContinue: () => void }) {
   return (
-    <div className="flex flex-1 flex-col justify-center gap-6">
-      <div className="rounded-xl border border-watch/40 bg-watch-bg px-4 py-5">
-        <p className="text-xs font-bold uppercase tracking-wide text-watch">
-          No prior handoff
-        </p>
-        <h2 className="mt-2 font-display text-2xl font-semibold text-ink">
-          Start a fresh brief
-        </h2>
-        <p className="mt-2 text-base leading-relaxed text-ink-muted">
-          There’s no recent handoff on file. Continue to see what’s due now, then leave a
-          note so the next person isn’t starting cold.
-        </p>
+    <div className="space-y-6">
+      <div className="flex overflow-hidden rounded-2xl border border-border bg-surface">
+        <span className="w-1.5 shrink-0 bg-ink" aria-hidden="true" />
+        <div className="px-5 py-5">
+          <p className="type-eyebrow text-ink-muted">No prior handoff</p>
+          <h2 className="type-h2 mt-2 text-ink">Start a fresh brief</h2>
+          <p className="type-lead mt-2 text-ink-muted">
+            There’s no recent handoff on file. Continue to what’s due now, then leave a note so
+            the next person isn’t starting cold.
+          </p>
+        </div>
       </div>
-      <Button type="button" fullWidth onClick={onContinue}>
+      <Button type="button" size="lg" onClick={onContinue} className="w-full sm:w-auto">
         Continue to due now
       </Button>
     </div>
@@ -323,40 +248,44 @@ function EmptyState({ onContinue }: { onContinue: () => void }) {
 }
 
 function ReadyState({
-  name,
+  patient,
   note,
   onBack,
 }: {
-  name: string;
+  patient: Patient;
   note: string;
   onBack: () => void;
 }) {
   return (
-    <div className="flex flex-1 flex-col justify-center gap-6 text-center">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success-bg text-success">
-        <span className="text-2xl font-bold" aria-hidden="true">
-          ✓
-        </span>
-      </div>
+    <div className="space-y-6 text-center">
+      <span
+        aria-hidden="true"
+        className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-soft text-2xl font-bold text-brand"
+      >
+        ✓
+      </span>
       <div>
-        <h2 className="font-display text-3xl font-semibold tracking-tight text-ink">
-          Brief complete
-        </h2>
-        <p className="mt-2 text-lg text-ink-muted">
-          You’re ready for {name}.
+        <h2 className="type-h1 text-ink">Brief complete</h2>
+        <p className="type-lead mt-2 text-ink-muted">
+          You’re ready for {patient.preferredName}.
         </p>
       </div>
+
       {note.trim() ? (
-        <div className="rounded-xl border border-border bg-surface px-4 py-3 text-left">
-          <p className="text-xs font-bold uppercase tracking-wide text-ink-muted">
-            Your note
-          </p>
-          <p className="mt-1 text-base text-ink">{note}</p>
-        </div>
+        <Card className="text-left">
+          <p className="type-eyebrow text-ink-subtle">Your note</p>
+          <p className="mt-1.5 text-base text-ink">{note}</p>
+        </Card>
       ) : null}
-      <Button type="button" variant="secondary" fullWidth onClick={onBack}>
-        Review brief
-      </Button>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <LinkButton href="/today" className="sm:min-w-44">
+          Back to today
+        </LinkButton>
+        <Button variant="secondary" onClick={onBack} className="sm:min-w-44">
+          Review brief
+        </Button>
+      </div>
     </div>
   );
 }

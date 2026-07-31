@@ -1,4 +1,8 @@
-import type { InputHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type {
+  InputHTMLAttributes,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from "react";
 
 type FieldProps = {
   id: string;
@@ -6,6 +10,33 @@ type FieldProps = {
   hint?: string;
   error?: string;
 };
+
+const control =
+  "w-full rounded-xl border-2 border-border bg-surface px-4 text-base text-ink placeholder:text-ink-subtle focus-visible:border-focus";
+
+function FieldMessages({ id, hint, error }: FieldProps) {
+  if (error) {
+    return (
+      <p id={`${id}-error`} className="text-sm font-semibold text-alert" role="alert">
+        {error}
+      </p>
+    );
+  }
+  if (hint) {
+    return (
+      <p id={`${id}-hint`} className="text-sm text-ink-muted">
+        {hint}
+      </p>
+    );
+  }
+  return null;
+}
+
+function describedBy({ id, hint, error }: FieldProps) {
+  if (error) return `${id}-error`;
+  if (hint) return `${id}-hint`;
+  return undefined;
+}
 
 export function TextField({
   id,
@@ -23,28 +54,49 @@ export function TextField({
       <input
         id={id}
         className={[
-          "touch-target w-full rounded-xl border-2 border-border bg-surface px-4 text-base text-ink",
-          "placeholder:text-ink-muted/70",
-          "focus-visible:border-focus",
-          error ? "border-urgent" : "",
+          "touch-target min-h-[48px]",
+          control,
+          error ? "border-alert" : "",
           className,
         ].join(" ")}
         aria-invalid={Boolean(error) || undefined}
-        aria-describedby={
-          error ? `${id}-error` : hint ? `${id}-hint` : undefined
-        }
+        aria-describedby={describedBy({ id, label, hint, error })}
         {...props}
       />
-      {hint && !error ? (
-        <p id={`${id}-hint`} className="text-sm text-ink-muted">
-          {hint}
-        </p>
-      ) : null}
-      {error ? (
-        <p id={`${id}-error`} className="text-sm font-medium text-urgent" role="alert">
-          {error}
-        </p>
-      ) : null}
+      <FieldMessages id={id} label={label} hint={hint} error={error} />
+    </div>
+  );
+}
+
+export function SelectField({
+  id,
+  label,
+  hint,
+  error,
+  className = "",
+  children,
+  ...props
+}: FieldProps & SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="text-sm font-semibold text-ink">
+        {label}
+      </label>
+      <select
+        id={id}
+        className={[
+          "touch-target min-h-[48px]",
+          control,
+          error ? "border-alert" : "",
+          className,
+        ].join(" ")}
+        aria-invalid={Boolean(error) || undefined}
+        aria-describedby={describedBy({ id, label, hint, error })}
+        {...props}
+      >
+        {children}
+      </select>
+      <FieldMessages id={id} label={label} hint={hint} error={error} />
     </div>
   );
 }
@@ -65,28 +117,16 @@ export function TextAreaField({
       <textarea
         id={id}
         className={[
-          "min-h-28 w-full rounded-xl border-2 border-border bg-surface px-4 py-3 text-base text-ink",
-          "placeholder:text-ink-muted/70",
-          "focus-visible:border-focus",
-          error ? "border-urgent" : "",
+          "min-h-28 py-3",
+          control,
+          error ? "border-alert" : "",
           className,
         ].join(" ")}
         aria-invalid={Boolean(error) || undefined}
-        aria-describedby={
-          error ? `${id}-error` : hint ? `${id}-hint` : undefined
-        }
+        aria-describedby={describedBy({ id, label, hint, error })}
         {...props}
       />
-      {hint && !error ? (
-        <p id={`${id}-hint`} className="text-sm text-ink-muted">
-          {hint}
-        </p>
-      ) : null}
-      {error ? (
-        <p id={`${id}-error`} className="text-sm font-medium text-urgent" role="alert">
-          {error}
-        </p>
-      ) : null}
+      <FieldMessages id={id} label={label} hint={hint} error={error} />
     </div>
   );
 }

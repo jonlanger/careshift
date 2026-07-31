@@ -1,4 +1,9 @@
-import type { DeltaCategory, DeltaSeverity } from "@/lib/types";
+import type {
+  DeltaCategory,
+  DeltaSeverity,
+  PatientStatus,
+  ShiftStatus,
+} from "@/lib/types";
 
 const categoryLabels: Record<DeltaCategory, string> = {
   mood: "Mood",
@@ -6,12 +11,25 @@ const categoryLabels: Record<DeltaCategory, string> = {
   appetite: "Appetite",
   incident: "Incident",
   mobility: "Mobility",
+  medication: "Medication",
 };
 
 const severityLabels: Record<DeltaSeverity, string> = {
-  info: "FYI",
+  attention: "Needs attention",
   watch: "Watch",
-  urgent: "Needs attention",
+  note: "Note",
+};
+
+const statusLabels: Record<PatientStatus, string> = {
+  attention: "Needs attention",
+  "needs-brief": "Brief not started",
+  briefed: "Brief complete",
+};
+
+const shiftStatusLabels: Record<ShiftStatus, string> = {
+  covered: "Covered",
+  open: "Open shift",
+  "swap-requested": "Swap requested",
 };
 
 export function formatCategory(category: DeltaCategory): string {
@@ -20,6 +38,14 @@ export function formatCategory(category: DeltaCategory): string {
 
 export function formatSeverity(severity: DeltaSeverity): string {
   return severityLabels[severity];
+}
+
+export function formatPatientStatus(status: PatientStatus): string {
+  return statusLabels[status];
+}
+
+export function formatShiftStatus(status: ShiftStatus): string {
+  return shiftStatusLabels[status];
 }
 
 export function formatTime(iso: string): string {
@@ -40,22 +66,26 @@ export function formatDateTime(iso: string): string {
 }
 
 export function formatRelativeTo(iso: string, nowIso: string): string {
-  const due = new Date(iso).getTime();
-  const now = new Date(nowIso).getTime();
-  const minutes = Math.round((due - now) / 60000);
+  const minutes = Math.round(
+    (new Date(iso).getTime() - new Date(nowIso).getTime()) / 60000,
+  );
 
   if (minutes <= 0) return "Due now";
   if (minutes < 60) return `In ${minutes} min`;
   const hours = Math.floor(minutes / 60);
   const rem = minutes % 60;
-  if (rem === 0) return `In ${hours} hr`;
-  return `In ${hours} hr ${rem} min`;
+  return rem === 0 ? `In ${hours} hr` : `In ${hours} hr ${rem} min`;
 }
 
 export function windowEndLabel(shiftStart: string, hours: number): string {
   const end = new Date(new Date(shiftStart).getTime() + hours * 60 * 60 * 1000);
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(end);
+  return formatTime(end.toISOString());
+}
+
+export function settingLabel(setting: "home" | "facility"): string {
+  return setting === "home" ? "Home visit" : "Facility";
+}
+
+export function initials(firstName: string, lastName: string): string {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }

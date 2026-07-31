@@ -1,18 +1,21 @@
-import type { Metadata } from "next";
-import { BriefFlow } from "@/components/brief/brief-flow";
-import { getFixture } from "@/data/fixtures";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Shift brief",
-};
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useCareshift } from "@/lib/store";
 
-type Props = {
-  searchParams: Promise<{ fixture?: string }>;
-};
+export default function BriefIndexPage() {
+  const router = useRouter();
+  const { patients } = useCareshift();
+  const next = patients.find((p) => p.status !== "briefed") ?? patients[0];
 
-export default async function BriefPage({ searchParams }: Props) {
-  const params = await searchParams;
-  const fixture = getFixture(params.fixture);
+  useEffect(() => {
+    router.replace(next ? `/brief/${next.id}` : "/patients");
+  }, [next, router]);
 
-  return <BriefFlow fixture={fixture} />;
+  return (
+    <p className="px-4 py-6 text-base text-ink-muted" role="status">
+      Opening your next brief…
+    </p>
+  );
 }

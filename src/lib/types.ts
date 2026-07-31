@@ -1,28 +1,23 @@
 export type CareSetting = "home" | "facility";
 
-export type DeltaCategory = "mood" | "sleep" | "appetite" | "incident" | "mobility";
+export type DeltaCategory =
+  | "mood"
+  | "sleep"
+  | "appetite"
+  | "incident"
+  | "mobility"
+  | "medication";
 
-export type DeltaSeverity = "info" | "watch" | "urgent";
+/** Three levels only — encoded with label + rail + weight, never color alone. */
+export type DeltaSeverity = "attention" | "watch" | "note";
 
 export type DueType = "med" | "task";
 
 export type BriefStep = "covering" | "changes" | "due" | "note";
 
-export interface Caregiver {
-  name: string;
-}
+export type PatientStatus = "attention" | "needs-brief" | "briefed";
 
-export interface Recipient {
-  firstName: string;
-  preferredName: string;
-  setting: CareSetting;
-  roomLabel?: string;
-}
-
-export interface LastHandoff {
-  at: string;
-  by: string;
-}
+export type ShiftStatus = "covered" | "open" | "swap-requested";
 
 export interface Delta {
   id: string;
@@ -39,14 +34,47 @@ export interface DueItem {
   status: "upcoming" | "due";
 }
 
-export interface BriefFixture {
+export interface TeamMember {
   id: string;
-  caregiver: Caregiver;
-  recipient: Recipient;
+  name: string;
+  role: string;
+  shiftLabel: string;
+}
+
+export interface Patient {
+  id: string;
+  firstName: string;
+  lastName: string;
+  preferredName: string;
+  setting: CareSetting;
+  roomLabel?: string;
+  summary: string;
+  status: PatientStatus;
   shiftStart: string;
-  lastHandoff: LastHandoff | null;
+  dueWindowHours: number;
+  lastHandoff: { at: string; by: string } | null;
   briefStale: boolean;
   deltas: Delta[];
   dueNow: DueItem[];
-  dueWindowHours: number;
+  careTeam: TeamMember[];
+  preferences: string[];
+}
+
+export interface ShiftSlot {
+  id: string;
+  patientId: string;
+  caregiverName: string | null;
+  start: string;
+  end: string;
+  label: string;
+  status: ShiftStatus;
+}
+
+export interface NewPatientInput {
+  firstName: string;
+  lastName: string;
+  preferredName: string;
+  setting: CareSetting;
+  roomLabel?: string;
+  summary: string;
 }

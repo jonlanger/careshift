@@ -1,0 +1,58 @@
+import type { ShiftSlot } from "@/lib/types";
+
+export const shiftSlots: ShiftSlot[] = [
+  {
+    id: "s1",
+    patientId: "helen",
+    caregiverName: "Alex Rivera",
+    start: "2026-07-31T07:00:00",
+    end: "2026-07-31T15:00:00",
+    label: "Day shift",
+    status: "covered",
+  },
+  {
+    id: "s2",
+    patientId: "rosa",
+    caregiverName: "Alex Rivera",
+    start: "2026-07-31T07:00:00",
+    end: "2026-07-31T15:00:00",
+    label: "Day shift",
+    status: "covered",
+  },
+  {
+    id: "s3",
+    patientId: "maggie",
+    caregiverName: "Alex Rivera",
+    start: "2026-07-31T09:00:00",
+    end: "2026-07-31T13:00:00",
+    label: "Morning visit",
+    status: "covered",
+  },
+  {
+    id: "s4",
+    patientId: "arthur",
+    caregiverName: null,
+    start: "2026-07-31T13:00:00",
+    end: "2026-07-31T17:00:00",
+    label: "Afternoon visit",
+    status: "open",
+  },
+  {
+    id: "s5",
+    patientId: "walter",
+    caregiverName: "Marcus Hill",
+    start: "2026-07-31T15:00:00",
+    end: "2026-07-31T19:00:00",
+    label: "First visit",
+    status: "swap-requested",
+  },
+  {
+    id: "s6",
+    patientId: "helen",
+    caregiverName: "Sam Okonkwo",
+    start: "2026-07-31T19:00:00",
+    end: "2026-08-01T07:00:00",
+    label: "Night shift",
+    status: "covered",
+  },
+];

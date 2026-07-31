@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE, isSessionCookie } from "@/lib/auth";
 
+const protectedPrefixes = ["/today", "/patients", "/shifts", "/brief"];
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const session = request.cookies.get(SESSION_COOKIE)?.value;
-  const authed = isSessionCookie(session);
+  const authed = isSessionCookie(request.cookies.get(SESSION_COOKIE)?.value);
+  const isProtected = protectedPrefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 
-  if (pathname.startsWith("/brief") && !authed) {
+  if (isProtected && !authed) {
     const url = request.nextUrl.clone();
     url.pathname = "/sign-in";
     url.searchParams.set("next", pathname);
@@ -15,7 +19,8 @@ export function proxy(request: NextRequest) {
 
   if ((pathname === "/sign-in" || pathname === "/sign-up") && authed) {
     const url = request.nextUrl.clone();
-    url.pathname = "/brief";
+    url.pathname = "/today";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 
@@ -23,5 +28,12 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/brief/:path*", "/sign-in", "/sign-up"],
+  matcher: [
+    "/today/:path*",
+    "/patients/:path*",
+    "/shifts/:path*",
+    "/brief/:path*",
+    "/sign-in",
+    "/sign-up",
+  ],
 };

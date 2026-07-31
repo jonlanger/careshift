@@ -1,50 +1,55 @@
 @import "tailwindcss";
 
 :root {
-  /* Surfaces — soft linen/sage atmosphere */
+  /* ---- Foundation: linen / sage surfaces, ink text ---- */
   --linen: #f2f5f1;
   --linen-deep: #e6ebe4;
   --sage-mist: #d8e3db;
-  --sage: #4a6b5c;
   --surface: #ffffff;
   --ink: #0f1a17;
-  --ink-muted: #24352f;
+  --ink-muted: #2f3f39;
+  --ink-subtle: #4a5a53;
   --border: #c5d0c8;
-  --focus: #1a4d44;
-  --cta: #1a4d44;
-  --cta-text: #ffffff;
-  --urgent: #5c1f1a;
-  --urgent-bg: #f7ebe9;
-  --watch: #5c4a1a;
-  --watch-bg: #f7f3e6;
-  --info: #1a3a5c;
-  --info-bg: #eaf1f7;
-  --success: #1a4d44;
-  --success-bg: #e4f0eb;
+  --border-strong: #9aa9a1;
+
+  /* ---- Single action accent ---- */
+  --brand: #1a4d44;
+  --brand-soft: #e4f0eb;
+  --on-brand: #ffffff;
+  --focus: #10352f;
+
+  /* ---- Single alert accent (safety only) ---- */
+  --alert: #7a2418;
+  --alert-soft: #f6ebe8;
+
   --radius: 0.75rem;
-  --touch: 2.75rem;
+  /* WCAG AAA target size / Material 48dp — minimum interactive height */
+  --touch: 48px;
+
+  /* ---- Fluid type scale ---- */
+  --type-display: clamp(2.75rem, 5.5vw + 1rem, 4.5rem);
+  --type-h1: clamp(2.125rem, 3vw + 1rem, 3.25rem);
+  --type-h2: clamp(1.625rem, 1.6vw + 0.9rem, 2.375rem);
+  --type-h3: clamp(1.25rem, 0.7vw + 0.9rem, 1.5rem);
+  --type-lead: clamp(1.0625rem, 0.5vw + 0.95rem, 1.3125rem);
 }
 
 @theme inline {
   --color-linen: var(--linen);
   --color-linen-deep: var(--linen-deep);
   --color-sage-mist: var(--sage-mist);
-  --color-sage: var(--sage);
   --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-on-brand: var(--on-brand);
   --color-focus: var(--focus);
-  --color-cta: var(--cta);
-  --color-cta-text: var(--cta-text);
-  --color-urgent: var(--urgent);
-  --color-urgent-bg: var(--urgent-bg);
-  --color-watch: var(--watch);
-  --color-watch-bg: var(--watch-bg);
-  --color-info: var(--info);
-  --color-info-bg: var(--info-bg);
-  --color-success: var(--success);
-  --color-success-bg: var(--success-bg);
+  --color-alert: var(--alert);
+  --color-alert-soft: var(--alert-soft);
   --font-sans: var(--font-source-sans);
   --font-display: var(--font-fraunces);
   --radius-default: var(--radius);
@@ -85,6 +90,50 @@
 @layer utilities {
   .font-display {
     font-family: var(--font-fraunces), Georgia, serif;
+  }
+
+  .type-display {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: var(--type-display);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+  }
+
+  .type-h1 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: var(--type-h1);
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    font-weight: 600;
+  }
+
+  .type-h2 {
+    font-family: var(--font-fraunces), Georgia, serif;
+    font-size: var(--type-h2);
+    line-height: 1.15;
+    letter-spacing: -0.018em;
+    font-weight: 600;
+  }
+
+  .type-h3 {
+    font-size: var(--type-h3);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    font-weight: 600;
+  }
+
+  .type-lead {
+    font-size: var(--type-lead);
+    line-height: 1.55;
+  }
+
+  .type-eyebrow {
+    font-size: 0.8125rem;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
   }
 
   .atmosphere {

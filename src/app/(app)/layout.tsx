@@ -1,7 +1,10 @@
+import { AppShell } from "@/components/app/app-shell";
+import { CareshiftProvider } from "@/lib/store";
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="atmosphere min-h-full">
-      {children}
-    </div>
+    <CareshiftProvider>
+      <AppShell>{children}</AppShell>
+    </CareshiftProvider>
   );
 }
