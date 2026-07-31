@@ -1,26 +1,101 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surfaces — soft linen/sage atmosphere */
+  --linen: #f2f5f1;
+  --linen-deep: #e6ebe4;
+  --sage-mist: #d8e3db;
+  --sage: #4a6b5c;
+  --surface: #ffffff;
+  --ink: #0f1a17;
+  --ink-muted: #24352f;
+  --border: #c5d0c8;
+  --focus: #1a4d44;
+  --cta: #1a4d44;
+  --cta-text: #ffffff;
+  --urgent: #5c1f1a;
+  --urgent-bg: #f7ebe9;
+  --watch: #5c4a1a;
+  --watch-bg: #f7f3e6;
+  --info: #1a3a5c;
+  --info-bg: #eaf1f7;
+  --success: #1a4d44;
+  --success-bg: #e4f0eb;
+  --radius: 0.75rem;
+  --touch: 2.75rem;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-linen: var(--linen);
+  --color-linen-deep: var(--linen-deep);
+  --color-sage-mist: var(--sage-mist);
+  --color-sage: var(--sage);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-border: var(--border);
+  --color-focus: var(--focus);
+  --color-cta: var(--cta);
+  --color-cta-text: var(--cta-text);
+  --color-urgent: var(--urgent);
+  --color-urgent-bg: var(--urgent-bg);
+  --color-watch: var(--watch);
+  --color-watch-bg: var(--watch-bg);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --font-sans: var(--font-source-sans);
+  --font-display: var(--font-fraunces);
+  --radius-default: var(--radius);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--linen);
+    color: var(--ink);
+    font-family: var(--font-source-sans), system-ui, sans-serif;
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .font-display {
+    font-family: var(--font-fraunces), Georgia, serif;
+  }
+
+  .atmosphere {
+    background:
+      radial-gradient(120% 80% at 10% -10%, var(--sage-mist) 0%, transparent 55%),
+      radial-gradient(90% 60% at 100% 0%, #eef3ea 0%, transparent 45%),
+      var(--linen);
+  }
+
+  .touch-target {
+    min-height: var(--touch);
+    min-width: var(--touch);
+  }
 }
