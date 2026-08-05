@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { PageBody, PageHeader } from "@/components/app/app-shell";
 import { DeltaSection } from "@/components/care/delta-list";
 import { DueList } from "@/components/care/due-list";
+import { LogObservationDialog } from "@/components/care/log-observation-dialog";
 import { LinkButton } from "@/components/ui/button";
 import { Card, StatusPill } from "@/components/ui/primitives";
 import { formatDateTime, settingLabel, windowEndLabel } from "@/lib/format";
@@ -72,6 +73,7 @@ export default function PatientDetailPage() {
                 title="What changed"
                 titleId="changes"
                 titleClassName="type-h2"
+                action={<LogObservationDialog patientId={patient.id} />}
               />
             </section>
 

@@ -1,4 +1,5 @@
 import {
+  CalendarDays,
   Check,
   Footprints,
   Moon,
@@ -17,6 +18,7 @@ const categoryIcons: Record<DeltaCategory, LucideIcon> = {
   incident: TriangleAlert,
   mobility: Footprints,
   medication: Pill,
+  schedule: CalendarDays,
 };
 
 /**

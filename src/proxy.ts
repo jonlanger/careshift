@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE, isSessionCookie } from "@/lib/auth";
 
-const protectedPrefixes = ["/today", "/patients", "/shifts", "/brief"];
+const protectedPrefixes = ["/today", "/patients", "/shifts", "/brief", "/schedule"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -33,6 +33,7 @@ export const config = {
     "/patients/:path*",
     "/shifts/:path*",
     "/brief/:path*",
+    "/schedule/:path*",
     "/sign-in",
     "/sign-up",
   ],

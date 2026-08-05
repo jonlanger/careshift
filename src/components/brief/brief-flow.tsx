@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { DeltaSection } from "@/components/care/delta-list";
+import { isAcknowledged } from "@/components/care/delta-visuals";
 import { DueList } from "@/components/care/due-list";
 import { Button, LinkButton } from "@/components/ui/button";
 import { TextAreaField } from "@/components/ui/input";
@@ -38,7 +39,13 @@ export function BriefFlow({ patient }: { patient: Patient }) {
   const hasNoHandoff = !patient.lastHandoff || patient.briefStale;
   const showEmpty = step === "changes" && hasNoHandoff && !emptyAcknowledged;
 
+  const unreviewedAttention = patient.deltas.filter(
+    (delta) => delta.severity === "attention" && !isAcknowledged(delta),
+  );
+  const blocked = step === "changes" && unreviewedAttention.length > 0;
+
   function goNext() {
+    if (blocked) return;
     if (step === "note") {
       markBriefed(patient.id);
       setComplete(true);
@@ -136,21 +143,36 @@ export function BriefFlow({ patient }: { patient: Patient }) {
 
       {!complete && !showEmpty ? (
         <div className="sticky bottom-14 border-t border-border bg-surface/95 px-4 py-4 backdrop-blur-md sm:px-6 md:bottom-0 lg:px-10">
-          <div className="mx-auto flex max-w-2xl flex-col gap-2 sm:flex-row-reverse sm:items-center">
-            <Button type="button" size="lg" fullWidth onClick={goNext} className="sm:flex-1">
-              {nextLabels[step]}
-            </Button>
-            {stepIndex > 0 ? (
+          <div className="mx-auto max-w-2xl">
+            {blocked ? (
+              <p className="mb-2 text-sm font-semibold text-alert" aria-live="polite">
+                Review {unreviewedAttention.length === 1 ? "the needs-attention item" : `all ${unreviewedAttention.length} needs-attention items`} to continue.
+              </p>
+            ) : null}
+            <div className="flex flex-col gap-2 sm:flex-row-reverse sm:items-center">
               <Button
                 type="button"
-                variant="ghost"
+                size="lg"
                 fullWidth
-                onClick={goBack}
-                className="sm:w-auto sm:px-6"
+                onClick={goNext}
+                disabled={blocked}
+                aria-disabled={blocked}
+                className="sm:flex-1"
               >
-                Back
+                {nextLabels[step]}
               </Button>
-            ) : null}
+              {stepIndex > 0 ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  fullWidth
+                  onClick={goBack}
+                  className="sm:w-auto sm:px-6"
+                >
+                  Back
+                </Button>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : null}

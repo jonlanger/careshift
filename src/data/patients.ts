@@ -23,6 +23,8 @@ export const patients: Patient[] = [
         severity: "attention",
         detail:
           "Happened around 7:40pm walking from the living room to the bathroom. She steadied herself on the doorframe and sat down for a few minutes. No pain, no bruising, full weight bearing afterwards.",
+        recommendation:
+          "Keep the hallway clear on your walkthrough and stay close for her evening walk to the bathroom tonight.",
         comparison: {
           before:
             "Hall runner was down in the path between the living room and bathroom. No trips or stumbles reported this week.",
@@ -47,6 +49,8 @@ export const patients: Patient[] = [
         severity: "watch",
         detail:
           "Once she was up her walking was steady. Worth watching whether this is fatigue at the end of the day or a real change.",
+        recommendation:
+          "Offer an arm for standing after 6pm and note whether it happens again tonight.",
         comparison: {
           before:
             "One hand on the armrest was enough to stand from the couch earlier in the week.",
@@ -90,29 +94,7 @@ export const patients: Patient[] = [
         notes: [],
       },
     ],
-    dueNow: [
-      {
-        id: "maggie-t1",
-        type: "med",
-        label: "Morning blood pressure med with breakfast",
-        dueAt: "2026-07-31T09:30:00",
-        status: "due",
-      },
-      {
-        id: "maggie-t2",
-        type: "task",
-        label: "Assist with morning wash and dressing",
-        dueAt: "2026-07-31T10:00:00",
-        status: "upcoming",
-      },
-      {
-        id: "maggie-t3",
-        type: "task",
-        label: "Encourage fluids — aim for 16 oz by noon",
-        dueAt: "2026-07-31T11:30:00",
-        status: "upcoming",
-      },
-    ],
+    dueNow: [],
     careTeam: [
       { id: "maggie-c1", name: "Jordan Lee", role: "Evening caregiver", shiftLabel: "4–10pm" },
       { id: "maggie-c2", name: "Priya Raman", role: "Supervising nurse", shiftLabel: "On call" },
@@ -194,29 +176,7 @@ export const patients: Patient[] = [
         notes: [],
       },
     ],
-    dueNow: [
-      {
-        id: "helen-t1",
-        type: "task",
-        label: "Repeat observations — post-fall follow-up",
-        dueAt: "2026-07-31T08:00:00",
-        status: "due",
-      },
-      {
-        id: "helen-t2",
-        type: "med",
-        label: "Morning meds with breakfast tray",
-        dueAt: "2026-07-31T08:15:00",
-        status: "due",
-      },
-      {
-        id: "helen-t3",
-        type: "task",
-        label: "Dressing check — look for leak-through",
-        dueAt: "2026-07-31T09:00:00",
-        status: "upcoming",
-      },
-    ],
+    dueNow: [],
     careTeam: [
       { id: "helen-c1", name: "Sam Okonkwo", role: "Night aide", shiftLabel: "7pm–7am" },
       { id: "helen-c2", name: "Dana Cruz", role: "Floor nurse", shiftLabel: "7am–3pm" },
@@ -272,22 +232,7 @@ export const patients: Patient[] = [
         notes: [],
       },
     ],
-    dueNow: [
-      {
-        id: "arthur-t1",
-        type: "med",
-        label: "Afternoon inhaler — confirm technique",
-        dueAt: "2026-07-31T13:30:00",
-        status: "due",
-      },
-      {
-        id: "arthur-t2",
-        type: "task",
-        label: "Light meal prep and dishes",
-        dueAt: "2026-07-31T14:30:00",
-        status: "upcoming",
-      },
-    ],
+    dueNow: [],
     careTeam: [
       { id: "arthur-c1", name: "Marcus Hill", role: "Weekend caregiver", shiftLabel: "Sat–Sun" },
       { id: "arthur-c2", name: "Priya Raman", role: "Supervising nurse", shiftLabel: "On call" },
@@ -339,15 +284,7 @@ export const patients: Patient[] = [
         notes: [],
       },
     ],
-    dueNow: [
-      {
-        id: "rosa-t1",
-        type: "task",
-        label: "Walk to the day room with walker",
-        dueAt: "2026-07-31T09:30:00",
-        status: "upcoming",
-      },
-    ],
+    dueNow: [],
     careTeam: [
       { id: "rosa-c1", name: "Dana Cruz", role: "Floor nurse", shiftLabel: "7am–3pm" },
       { id: "rosa-c2", name: "Theo Park", role: "Physical therapy", shiftLabel: "Mon/Wed/Fri" },
@@ -367,22 +304,7 @@ export const patients: Patient[] = [
     lastHandoff: null,
     briefStale: true,
     deltas: [],
-    dueNow: [
-      {
-        id: "walter-t1",
-        type: "task",
-        label: "Review care plan binder on arrival",
-        dueAt: "2026-07-31T15:15:00",
-        status: "due",
-      },
-      {
-        id: "walter-t2",
-        type: "med",
-        label: "Evening medication reminder",
-        dueAt: "2026-07-31T17:00:00",
-        status: "upcoming",
-      },
-    ],
+    dueNow: [],
     careTeam: [
       { id: "walter-c1", name: "Priya Raman", role: "Supervising nurse", shiftLabel: "On call" },
     ],

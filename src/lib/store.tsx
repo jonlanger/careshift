@@ -9,13 +9,27 @@ import {
   type ReactNode,
 } from "react";
 import { CAREGIVER_NAME, patients as seedPatients } from "@/data/patients";
+import { scheduleEvents as seedSchedule } from "@/data/schedule";
 import { shiftSlots as seedShifts } from "@/data/shifts";
-import type { Delta, NewPatientInput, Patient, ShiftSlot } from "@/lib/types";
+import {
+  deltaFromScheduleChange,
+  withDerivedDue,
+} from "@/lib/schedule";
+import type {
+  Delta,
+  NewDeltaInput,
+  NewPatientInput,
+  NewScheduleEventInput,
+  Patient,
+  ScheduleEvent,
+  ShiftSlot,
+} from "@/lib/types";
 
 type Store = {
   caregiverName: string;
   patients: Patient[];
   shifts: ShiftSlot[];
+  schedule: ScheduleEvent[];
   addPatient: (input: NewPatientInput) => Patient;
   markBriefed: (patientId: string) => void;
   setDeltaAcknowledged: (
@@ -24,8 +38,11 @@ type Store = {
     acknowledged: boolean,
   ) => void;
   addDeltaNote: (patientId: string, deltaId: string, body: string) => void;
+  addDelta: (input: NewDeltaInput) => Delta;
   claimShift: (shiftId: string) => void;
   requestSwap: (shiftId: string) => void;
+  addScheduleEvent: (input: NewScheduleEventInput) => ScheduleEvent;
+  rescheduleEvent: (eventId: string, startsAt: string, endsAt?: string) => void;
 };
 
 const CareshiftContext = createContext<Store | null>(null);
@@ -40,6 +57,7 @@ function slugify(value: string) {
 export function CareshiftProvider({ children }: { children: ReactNode }) {
   const [patients, setPatients] = useState<Patient[]>(seedPatients);
   const [shifts, setShifts] = useState<ShiftSlot[]>(seedShifts);
+  const [schedule, setSchedule] = useState<ScheduleEvent[]>(seedSchedule);
 
   const addPatient = useCallback((input: NewPatientInput) => {
     const preferred = input.preferredName.trim() || input.firstName.trim();
@@ -95,6 +113,16 @@ export function CareshiftProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const pushDelta = useCallback((patientId: string, delta: Delta) => {
+    setPatients((current) =>
+      current.map((patient) =>
+        patient.id === patientId
+          ? { ...patient, deltas: [delta, ...patient.deltas] }
+          : patient,
+      ),
+    );
+  }, []);
+
   const setDeltaAcknowledged = useCallback(
     (patientId: string, deltaId: string, acknowledged: boolean) => {
       updateDelta(patientId, deltaId, (delta) => ({
@@ -127,18 +155,33 @@ export function CareshiftProvider({ children }: { children: ReactNode }) {
     [updateDelta],
   );
 
-  const claimShift = useCallback(
-    (shiftId: string) => {
-      setShifts((current) =>
-        current.map((slot) =>
-          slot.id === shiftId
-            ? { ...slot, caregiverName: CAREGIVER_NAME, status: "covered" }
-            : slot,
-        ),
-      );
+  const addDelta = useCallback(
+    (input: NewDeltaInput) => {
+      const delta: Delta = {
+        id: `delta-${Math.random().toString(36).slice(2, 8)}`,
+        category: input.category,
+        severity: input.severity,
+        summary: input.summary.trim(),
+        detail: input.detail?.trim() || undefined,
+        recommendation: input.recommendation?.trim() || undefined,
+        observedAt: new Date().toISOString(),
+        reportedBy: CAREGIVER_NAME,
+      };
+      pushDelta(input.patientId, delta);
+      return delta;
     },
-    [],
+    [pushDelta],
   );
+
+  const claimShift = useCallback((shiftId: string) => {
+    setShifts((current) =>
+      current.map((slot) =>
+        slot.id === shiftId
+          ? { ...slot, caregiverName: CAREGIVER_NAME, status: "covered" }
+          : slot,
+      ),
+    );
+  }, []);
 
   const requestSwap = useCallback((shiftId: string) => {
     setShifts((current) =>
@@ -148,27 +191,105 @@ export function CareshiftProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const addScheduleEvent = useCallback(
+    (input: NewScheduleEventInput) => {
+      const event: ScheduleEvent = {
+        id: `sch-${Math.random().toString(36).slice(2, 9)}`,
+        patientId: input.patientId,
+        type: input.type,
+        title: input.title.trim(),
+        startsAt: input.startsAt,
+        endsAt: input.endsAt,
+        dueRelevant: input.dueRelevant ?? true,
+        notes: input.notes?.trim() || undefined,
+      };
+
+      setSchedule((current) =>
+        [...current, event].sort(
+          (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+        ),
+      );
+
+      pushDelta(
+        event.patientId,
+        deltaFromScheduleChange({
+          event,
+          author: CAREGIVER_NAME,
+          kind: "added",
+        }),
+      );
+
+      return event;
+    },
+    [pushDelta],
+  );
+
+  const rescheduleEvent = useCallback(
+    (eventId: string, startsAt: string, endsAt?: string) => {
+      const previous = schedule.find((event) => event.id === eventId);
+      if (!previous || previous.startsAt === startsAt) return;
+
+      const updated: ScheduleEvent = {
+        ...previous,
+        startsAt,
+        endsAt: endsAt ?? previous.endsAt,
+      };
+
+      setSchedule((current) =>
+        current
+          .map((event) => (event.id === eventId ? updated : event))
+          .sort(
+            (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+          ),
+      );
+
+      pushDelta(
+        previous.patientId,
+        deltaFromScheduleChange({
+          event: updated,
+          previousStartsAt: previous.startsAt,
+          author: CAREGIVER_NAME,
+          kind: "rescheduled",
+        }),
+      );
+    },
+    [schedule, pushDelta],
+  );
+
+  const patientsWithDue = useMemo(
+    () => withDerivedDue(patients, schedule),
+    [patients, schedule],
+  );
+
   const value = useMemo<Store>(
     () => ({
       caregiverName: CAREGIVER_NAME,
-      patients,
+      patients: patientsWithDue,
       shifts,
+      schedule,
       addPatient,
       markBriefed,
       setDeltaAcknowledged,
       addDeltaNote,
+      addDelta,
       claimShift,
       requestSwap,
+      addScheduleEvent,
+      rescheduleEvent,
     }),
     [
-      patients,
+      patientsWithDue,
       shifts,
+      schedule,
       addPatient,
       markBriefed,
       setDeltaAcknowledged,
       addDeltaNote,
+      addDelta,
       claimShift,
       requestSwap,
+      addScheduleEvent,
+      rescheduleEvent,
     ],
   );
 

@@ -76,7 +76,11 @@ export default function NewPatientPage() {
             onChange={(e) => setPreferredName(e.target.value)}
           />
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div
+            className={
+              setting === "facility" ? "grid gap-5 sm:grid-cols-2" : undefined
+            }
+          >
             <SelectField
               id="setting"
               label="Care setting"

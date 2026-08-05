@@ -82,20 +82,38 @@ export function SelectField({
       <label htmlFor={id} className="text-sm font-semibold text-ink">
         {label}
       </label>
-      <select
-        id={id}
-        className={[
-          "touch-target min-h-[48px]",
-          control,
-          error ? "border-alert" : "",
-          className,
-        ].join(" ")}
-        aria-invalid={Boolean(error) || undefined}
-        aria-describedby={describedBy({ id, label, hint, error })}
-        {...props}
-      >
-        {children}
-      </select>
+      <div className="relative">
+        <select
+          id={id}
+          className={[
+            "touch-target min-h-[48px] appearance-none pr-11",
+            control,
+            error ? "border-alert" : "",
+            className,
+          ].join(" ")}
+          aria-invalid={Boolean(error) || undefined}
+          aria-describedby={describedBy({ id, label, hint, error })}
+          {...props}
+        >
+          {children}
+        </select>
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-ink-muted"
+        >
+          <svg
+            viewBox="0 0 20 20"
+            fill="none"
+            className="size-4"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M5 7.5 10 12.5 15 7.5" />
+          </svg>
+        </span>
+      </div>
       <FieldMessages id={id} label={label} hint={hint} error={error} />
     </div>
   );

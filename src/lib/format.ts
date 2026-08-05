@@ -12,6 +12,7 @@ const categoryLabels: Record<DeltaCategory, string> = {
   incident: "Incident",
   mobility: "Mobility",
   medication: "Medication",
+  schedule: "Schedule",
 };
 
 const severityLabels: Record<DeltaSeverity, string> = {

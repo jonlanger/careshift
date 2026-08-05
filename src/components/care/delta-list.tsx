@@ -217,6 +217,12 @@ function DeltaCard({
               {delta.detail}
             </p>
           ) : null}
+          {delta.recommendation ? (
+            <p className="mt-2 rounded-lg border border-brand/25 bg-brand-soft/60 px-3 py-2 text-sm leading-snug text-ink">
+              <span className="font-bold text-brand">Recommended: </span>
+              {delta.recommendation}
+            </p>
+          ) : null}
           <Meta delta={delta} className="mt-2.5" />
         </div>
       </div>

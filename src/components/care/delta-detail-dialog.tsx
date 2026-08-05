@@ -86,6 +86,13 @@ function DeltaDetailPanel({
           </p>
         )}
 
+        {delta.recommendation ? (
+          <div className="mt-4 rounded-xl border border-brand/25 bg-brand-soft/60 px-4 py-3.5">
+            <p className="type-eyebrow text-brand">Recommended</p>
+            <p className="mt-1 text-base leading-relaxed text-ink">{delta.recommendation}</p>
+          </div>
+        ) : null}
+
         {delta.comparison ? (
           <ComparisonTabs comparison={delta.comparison} idBase={titleId} />
         ) : null}
